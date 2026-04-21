@@ -30,12 +30,12 @@ const alrasSettings = {
   'GEOG ALRAS': {
     headerName: 'Geography',
     sectionName: 'Geography',
-    description: `Available Features: <br>- Generic Vocabulary Flashcards <br>- Wordle`
+    description: `Status: <br>- Geography section is coming soon. <br>- Please check back for upcoming materials and activities.`
   },
   'CHEM ALRAS': {
     headerName: 'Chemistry',
     sectionName: 'Chemistry',
-    description: `Available Features: <br>- Generic Vocabulary Flashcards <br>- Wordle`
+    description: `Status: <br>- Chemistry section is coming soon. <br>- Please check back for upcoming materials and activities.`
   }
 };
 
@@ -133,9 +133,13 @@ function selectAlras(alras) {
     primaryTitle.textContent = 'Common Abbreviations';
     primaryDesc.textContent = ' Regional, country, policy, politics, and military abbreviations.';
     primaryCard.setAttribute('onclick', 'openHistoryAbbreviations()');
+    primaryCard.style.cursor = 'pointer';
+    primaryCard.style.opacity = '1';
     secondaryTitle.textContent = 'Cold War Notes';
     secondaryDesc.textContent = '(1945 ~ 1991) Cold War Notes';
     secondaryCard.setAttribute('onclick', 'openColdWarNotes()');
+    secondaryCard.style.cursor = 'pointer';
+    secondaryCard.style.opacity = '1';
     tertiaryTitle.textContent = 'Hong Kong History Notes';
     tertiaryDesc.textContent = '(1900 ~ 2000) Hong Kong History Notes';
     tertiaryCard.setAttribute('onclick', 'openHkHistoryNotes()');
@@ -147,9 +151,13 @@ function selectAlras(alras) {
     primaryTitle.textContent = 'Generic Vocabulary Flashcards';
     primaryDesc.textContent = 'Tap to enter the built-in flashcard trainer and practice 50+ vocabulary words with meanings and example sentences.';
     primaryCard.setAttribute('onclick', 'openFlashcards()');
+    primaryCard.style.cursor = 'pointer';
+    primaryCard.style.opacity = '1';
     secondaryTitle.textContent = 'Wordle Game';
     secondaryDesc.textContent = 'Challenge yourself with the popular word-guessing game. Guess the five-letter word in 6 attempts using vocabulary from your course.';
     secondaryCard.setAttribute('onclick', 'openWordle()');
+    secondaryCard.style.cursor = 'pointer';
+    secondaryCard.style.opacity = '1';
     tertiaryTitle.textContent = 'Vocabulary Set Challenge';
     tertiaryDesc.textContent = 'Choose a synonym set and fill in the rest of the words using first-two-letter hints.';
     tertiaryCard.setAttribute('onclick', 'openSetChallenge()');
@@ -158,12 +166,18 @@ function selectAlras(alras) {
     quaternaryCard.classList.add('hidden');
     quaternaryCard.style.display = 'none';
   } else {
-    primaryTitle.textContent = 'Generic Vocabulary Flashcards';
-    primaryDesc.textContent = 'Tap to enter the built-in flashcard trainer and practice 50+ vocabulary words with meanings and example sentences.';
-    primaryCard.setAttribute('onclick', 'openFlashcards()');
-    secondaryTitle.textContent = 'Wordle Game';
-    secondaryDesc.textContent = 'Challenge yourself with the popular word-guessing game. Guess the five-letter word in 6 attempts using vocabulary from your course.';
-    secondaryCard.setAttribute('onclick', 'openWordle()');
+    primaryTitle.textContent = `${settings.sectionName} Section (Coming Soon)`;
+    primaryDesc.textContent = 'This section is under preparation. New resources and exercises will be available soon.';
+    primaryCard.removeAttribute('onclick');
+    primaryCard.onclick = null;
+    primaryCard.style.cursor = 'not-allowed';
+    primaryCard.style.opacity = '0.75';
+    secondaryTitle.textContent = 'Stay Tuned';
+    secondaryDesc.textContent = 'We are building this section now. Please come back later for updates.';
+    secondaryCard.removeAttribute('onclick');
+    secondaryCard.onclick = null;
+    secondaryCard.style.cursor = 'not-allowed';
+    secondaryCard.style.opacity = '0.75';
     tertiaryCard.classList.add('hidden');
     tertiaryCard.style.display = 'none';
     quaternaryCard.classList.add('hidden');

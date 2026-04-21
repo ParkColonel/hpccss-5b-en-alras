@@ -187,7 +187,6 @@ function selectAlras(alras) {
   document.querySelectorAll('.alras-item').forEach((btn) => {
     btn.classList.toggle('active', btn.textContent === alras);
   });
-  document.getElementById('sidebar-update-logs').classList.remove('active');
   document.querySelector('#update-logs-app .app-header p').textContent = `View recent updates and improvements to ${alras}.`;
   document.querySelector('#wordle-app .app-header p').textContent = `Guess the five-letter vocabulary word in 6 attempts.`;
   showLanding();
@@ -487,6 +486,12 @@ function openUpdateLogs() {
   document.querySelector('header .brand h1').textContent = 'HPCCSS 5B ALRAS Update Logs';
   document.querySelectorAll('.alras-item').forEach((btn) => btn.classList.remove('active'));
   document.getElementById('sidebar-update-logs').classList.add('active');
+}
+
+function openWebsiteUpdates() {
+  openScreen('website-updates-app', { route: 'updates' });
+  document.querySelector('header .brand h1').textContent = 'Website Updates';
+  document.querySelectorAll('.alras-item').forEach((btn) => btn.classList.remove('active'));
 }
 
 window.addEventListener('load', () => {

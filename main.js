@@ -88,6 +88,12 @@ const asciiState = {
   timer: null
 };
 
+const sectionTransitionState = {
+  timer: null
+};
+
+const sectionTransitionMs = 460;
+
 function setRoute(route) {
   if (!route) return;
   if (window.location.hash !== `#${route}`) {
@@ -101,6 +107,23 @@ function animateJump(elementId) {
   el.classList.remove('jump-in');
   void el.offsetWidth;
   el.classList.add('jump-in');
+}
+
+function animateTextFlip(el) {
+  if (!el) return;
+  el.classList.remove('text-flip');
+  void el.offsetWidth;
+  el.classList.add('text-flip');
+}
+
+function setTextWithFlip(el, value, useHtml = false) {
+  if (!el) return;
+  if (useHtml) {
+    el.innerHTML = value;
+  } else {
+    el.textContent = value;
+  }
+  animateTextFlip(el);
 }
 
 function restartFeatureCardEntrance() {
@@ -151,11 +174,49 @@ function syncAsciiTicker() {
   }
 }
 
+function clearSectionTransitionTimer() {
+  if (sectionTransitionState.timer) {
+    clearTimeout(sectionTransitionState.timer);
+    sectionTransitionState.timer = null;
+  }
+}
+
+function getSectionElements() {
+  const hero = document.querySelector('.hero');
+  const screens = screenIds
+    .map((id) => document.getElementById(id))
+    .filter((el) => el);
+  return hero ? [hero, ...screens] : screens;
+}
+
+function getVisibleSections() {
+  return getSectionElements().filter((el) => window.getComputedStyle(el).display !== 'none');
+}
+
+function markSectionEntering(el) {
+  el.classList.remove('section-exit');
+  el.classList.add('section-enter');
+}
+
+function markSectionExiting(el) {
+  el.classList.remove('section-enter');
+  el.classList.add('section-exit');
+}
+
 function hideAllScreens() {
+  clearSectionTransitionTimer();
   screenIds.forEach((id) => {
     const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
+    if (el) {
+      el.classList.remove('section-enter', 'section-exit');
+      el.style.display = 'none';
+    }
   });
+  const hero = document.querySelector('.hero');
+  if (hero) {
+    hero.classList.remove('section-enter', 'section-exit');
+    hero.style.display = 'none';
+  }
 }
 
 function openScreen(screenId, {
@@ -163,18 +224,47 @@ function openScreen(screenId, {
   heroDisplay = 'none',
   scroll = true
 } = {}) {
-  hideAllScreens();
   const hero = document.querySelector('.hero');
-  if (hero) hero.style.display = heroDisplay;
   const screen = document.getElementById(screenId);
   if (!screen) return;
-  screen.style.display = 'block';
-  animateJump(screenId);
-  if (scroll) {
-    screen.scrollIntoView({ behavior: 'smooth' });
+
+  clearSectionTransitionTimer();
+
+  const nextVisible = new Set([screen]);
+  if (hero && heroDisplay !== 'none') {
+    nextVisible.add(hero);
   }
-  setRoute(route);
-  syncAsciiTicker();
+
+  const visibleSections = getVisibleSections();
+  const exitingSections = visibleSections.filter((el) => !nextVisible.has(el));
+
+  const showTarget = () => {
+    hideAllScreens();
+    if (hero) {
+      hero.style.display = heroDisplay;
+      if (heroDisplay !== 'none') {
+        markSectionEntering(hero);
+      }
+    }
+    screen.style.display = 'block';
+    markSectionEntering(screen);
+    animateTextFlip(screen.querySelector('.app-header h3'));
+    animateTextFlip(screen.querySelector('.app-header .muted-subtitle'));
+    animateJump(screenId);
+    if (scroll) {
+      screen.scrollIntoView({ behavior: 'smooth' });
+    }
+    setRoute(route);
+    syncAsciiTicker();
+  };
+
+  if (exitingSections.length === 0) {
+    showTarget();
+    return;
+  }
+
+  exitingSections.forEach(markSectionExiting);
+  sectionTransitionState.timer = window.setTimeout(showTarget, sectionTransitionMs);
 }
 
 function openRouteFromHash() {
@@ -188,9 +278,9 @@ function selectAlras(alras) {
   const settings = alrasSettings[alras] || alrasSettings['EN ALRAS'];
   const isHist = alras === 'HIST ALRAS';
   const isEn = alras === 'EN ALRAS';
-  document.querySelector('header .brand h1').textContent = `HPCCSS 5B ${settings.headerName} ALRAS`;
-  document.getElementById('hero-title').textContent = `ALRAS - ${settings.sectionName} Section`;
-  document.getElementById('hero-description').innerHTML = settings.description;
+  setTextWithFlip(document.querySelector('header .brand h1'), `HPCCSS 5B ${settings.headerName} ALRAS`);
+  setTextWithFlip(document.getElementById('hero-title'), `ALRAS - ${settings.sectionName} Section`);
+  setTextWithFlip(document.getElementById('hero-description'), settings.description, true);
 
   const primaryTitle = document.getElementById('primary-feature-title');
   const primaryDesc = document.getElementById('primary-feature-desc');
@@ -262,8 +352,14 @@ function selectAlras(alras) {
     btn.classList.toggle('active', btn.textContent === alras);
   });
   document.getElementById('sidebar-update-logs').classList.remove('active');
-  document.querySelector('#update-logs-app .app-header p').textContent = `View recent updates and improvements to ${alras}.`;
-  document.querySelector('#wordle-app .app-header p').textContent = `Guess the five-letter vocabulary word in 6 attempts.`;
+  setTextWithFlip(
+    document.querySelector('#update-logs-app .app-header p'),
+    `View recent updates and improvements to ${alras}.`
+  );
+  setTextWithFlip(
+    document.querySelector('#wordle-app .app-header p'),
+    'Guess the five-letter vocabulary word in 6 attempts.'
+  );
   showLanding();
 }
 
@@ -549,15 +645,33 @@ function openJpHistoryNotes() {
 }
 
 function showLanding() {
-  document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
-  hideAllScreens();
-  document.querySelector('.hero').style.display = 'grid';
-  const settings = alrasSettings[currentAlras] || alrasSettings['EN ALRAS'];
-  document.querySelector('header .brand h1').textContent = `HPCCSS 5B ${settings.headerName} ALRAS`;
-  restartFeatureCardEntrance();
-  animateJump('primary-feature-card');
-  setRoute('home');
-  syncAsciiTicker();
+  clearSectionTransitionTimer();
+  const hero = document.querySelector('.hero');
+  if (!hero) return;
+  const exitingSections = getVisibleSections().filter((el) => el !== hero);
+
+  const showHome = () => {
+    document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
+    hideAllScreens();
+    hero.style.display = 'grid';
+    markSectionEntering(hero);
+    const settings = alrasSettings[currentAlras] || alrasSettings['EN ALRAS'];
+    setTextWithFlip(document.querySelector('header .brand h1'), `HPCCSS 5B ${settings.headerName} ALRAS`);
+    animateTextFlip(document.getElementById('hero-title'));
+    animateTextFlip(document.getElementById('hero-description'));
+    restartFeatureCardEntrance();
+    animateJump('primary-feature-card');
+    setRoute('home');
+    syncAsciiTicker();
+  };
+
+  if (exitingSections.length === 0) {
+    showHome();
+    return;
+  }
+
+  exitingSections.forEach(markSectionExiting);
+  sectionTransitionState.timer = window.setTimeout(showHome, sectionTransitionMs);
 }
 
 function openFlashcards() {
@@ -697,7 +811,7 @@ async function loadUpdateLogs(forceRefresh = false) {
 
 function openUpdateLogs() {
   openScreen('update-logs-app', { route: 'updates' });
-  document.querySelector('header .brand h1').textContent = 'HPCCSS 5B ALRAS Update Logs';
+  setTextWithFlip(document.querySelector('header .brand h1'), 'HPCCSS 5B ALRAS Update Logs');
   document.querySelectorAll('.alras-item').forEach((btn) => btn.classList.remove('active'));
   document.getElementById('sidebar-update-logs').classList.add('active');
   loadUpdateLogs();

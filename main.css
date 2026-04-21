@@ -244,8 +244,55 @@ main {
   margin-top: 12px;
 }
 
+.section-enter {
+  animation: sectionEnter calc(var(--dur-slow) + 220ms) var(--ease-snap);
+}
+
+.section-exit {
+  animation: sectionExit calc(var(--dur-base) + 120ms) var(--ease-linear);
+  pointer-events: none;
+}
+
+.text-flip {
+  animation: textFlipIn calc(var(--dur-slow) + 260ms) var(--ease-snap);
+  transform-origin: center top;
+}
+
 .jump-in {
   animation: jumpIn var(--dur-slow) var(--ease-linear);
+}
+
+@keyframes sectionEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sectionExit {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+}
+
+@keyframes textFlipIn {
+  0% {
+    opacity: 0;
+    transform: rotateX(-112deg) translateY(-22px);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateX(0) translateY(0);
+  }
 }
 
 @keyframes jumpIn {

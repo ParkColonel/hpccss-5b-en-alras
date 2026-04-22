@@ -64,15 +64,17 @@ const routeMap = {
 };
 
 const updateLogsConfig = {
-  owner: 'darrenintr',
-  repo: 'JasonSoNoob',
+  fallbackOwner: 'darrenintr',
+  fallbackRepo: 'JasonSoNoob',
   perPage: 30,
   timezone: 'Asia/Hong_Kong'
 };
 
 const updateLogsState = {
   isLoaded: false,
-  isLoading: false
+  isLoading: false,
+  owner: null,
+  repo: null
 };
 
 const asciiFrames = [
@@ -771,18 +773,43 @@ function renderUpdateLogs(commits) {
   });
 }
 
+function resolveGitHubRepoFromLocation() {
+  const host = window.location.hostname;
+  const pathParts = window.location.pathname.split('/').filter(Boolean);
+
+  const isGitHubPagesHost = host.endsWith('.github.io');
+  const ownerFromHost = isGitHubPagesHost ? host.replace(/\.github\.io$/i, '') : '';
+  const repoFromPath = pathParts.length > 0 ? pathParts[0] : '';
+
+  const owner = ownerFromHost || updateLogsConfig.fallbackOwner;
+  const repo = repoFromPath || updateLogsConfig.fallbackRepo;
+
+  return { owner, repo };
+}
+
 async function loadUpdateLogs(forceRefresh = false) {
   const container = document.getElementById('update-logs-container');
   if (!container) return;
   if (updateLogsState.isLoading) return;
-  if (updateLogsState.isLoaded && !forceRefresh) return;
+  const resolvedRepo = resolveGitHubRepoFromLocation();
+  const repoChanged =
+    updateLogsState.owner !== resolvedRepo.owner ||
+    updateLogsState.repo !== resolvedRepo.repo;
+  if (repoChanged) {
+    updateLogsState.isLoaded = false;
+  }
+  if (updateLogsState.isLoaded && !forceRefresh && !repoChanged) return;
 
   updateLogsState.isLoading = true;
-  renderUpdateStatus(container, '[..]', 'Loading update logs from GitHub commits...');
+  renderUpdateStatus(
+    container,
+    '[..]',
+    `Loading update logs from ${resolvedRepo.owner}/${resolvedRepo.repo}...`
+  );
 
   try {
     const response = await fetch(
-      `https://api.github.com/repos/${updateLogsConfig.owner}/${updateLogsConfig.repo}/commits?per_page=${updateLogsConfig.perPage}`,
+      `https://api.github.com/repos/${resolvedRepo.owner}/${resolvedRepo.repo}/commits?per_page=${updateLogsConfig.perPage}`,
       {
         headers: {
           Accept: 'application/vnd.github+json'
@@ -797,6 +824,8 @@ async function loadUpdateLogs(forceRefresh = false) {
     const commits = await response.json();
     renderUpdateLogs(commits);
     updateLogsState.isLoaded = true;
+    updateLogsState.owner = resolvedRepo.owner;
+    updateLogsState.repo = resolvedRepo.repo;
   } catch (error) {
     renderUpdateStatus(
       container,
@@ -804,6 +833,8 @@ async function loadUpdateLogs(forceRefresh = false) {
       `Unable to load commit logs. ${error?.message || 'Please try again later.'}`
     );
     updateLogsState.isLoaded = false;
+    updateLogsState.owner = null;
+    updateLogsState.repo = null;
   } finally {
     updateLogsState.isLoading = false;
   }

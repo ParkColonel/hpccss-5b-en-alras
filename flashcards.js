@@ -55,52 +55,84 @@ const vocabularyList = [
   ["Prevail", "佔上風", "Verb", "Despite the many challenges, we believe that truth and justice will ultimately prevail."]
 ];
 
-const cards = vocabularyList.map(item => ({
-  vocab: item[0],
-  meaning: item[1],
-  usage: item[2],
-  sentence: item[3]
+const cards = vocabularyList.map(([vocab, meaning, usage, sentence]) => ({
+  vocab,
+  meaning,
+  usage,
+  sentence
 }));
+
+const cardUI = {
+  loading: document.getElementById('loading'),
+  app: document.getElementById('app'),
+  card: document.getElementById('card'),
+  vocabDisplay: document.getElementById('vocab-display'),
+  meaningDisplay: document.getElementById('meaning-display'),
+  usageDisplay: document.getElementById('usage-display'),
+  sentenceDisplay: document.getElementById('sentence-display'),
+  progressText: document.getElementById('progress-text'),
+  prevBtn: document.getElementById('prev-btn'),
+  nextBtn: document.getElementById('next-btn')
+};
 
 let currentIndex = 0;
 
+function clampIndex(index) {
+  if (!cards.length) return 0;
+  return Math.min(Math.max(index, 0), cards.length - 1);
+}
+
+function setCurrentIndex(index) {
+  currentIndex = clampIndex(index);
+  renderCard();
+}
+
 function renderCard() {
   if (!cards.length) {
-    document.getElementById('loading').innerText = 'No vocabulary available.';
+    if (cardUI.loading) {
+      cardUI.loading.innerText = 'No vocabulary available.';
+      cardUI.loading.style.display = 'block';
+    }
+    if (cardUI.app) {
+      cardUI.app.style.display = 'none';
+      cardUI.app.classList.add('hidden');
+    }
     return;
   }
 
   const card = cards[currentIndex];
-  const cardEl = document.getElementById('card');
-  cardEl.classList.remove('flipped');
+  if (cardUI.card) {
+    cardUI.card.classList.remove('flipped');
+  }
 
-  document.getElementById('vocab-display').innerText = card.vocab || '';
-  document.getElementById('meaning-display').innerText = card.meaning || '';
-  document.getElementById('usage-display').innerText = card.usage ? `Usage: ${card.usage}` : '';
-  document.getElementById('sentence-display').innerText = card.sentence || '';
-  document.getElementById('progress-text').innerText = `Card ${currentIndex + 1} of ${cards.length}`;
+  if (cardUI.vocabDisplay) cardUI.vocabDisplay.innerText = card.vocab || '';
+  if (cardUI.meaningDisplay) cardUI.meaningDisplay.innerText = card.meaning || '';
+  if (cardUI.usageDisplay) cardUI.usageDisplay.innerText = card.usage ? `Usage: ${card.usage}` : '';
+  if (cardUI.sentenceDisplay) cardUI.sentenceDisplay.innerText = card.sentence || '';
+  if (cardUI.progressText) cardUI.progressText.innerText = `Card ${currentIndex + 1} of ${cards.length}`;
 
-  document.getElementById('prev-btn').disabled = currentIndex === 0;
-  document.getElementById('next-btn').disabled = currentIndex === cards.length - 1;
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('app').classList.remove('hidden');
+  if (cardUI.prevBtn) cardUI.prevBtn.disabled = currentIndex === 0;
+  if (cardUI.nextBtn) cardUI.nextBtn.disabled = currentIndex === cards.length - 1;
+
+  if (cardUI.loading) {
+    cardUI.loading.style.display = 'none';
+  }
+  if (cardUI.app) {
+    cardUI.app.style.display = 'block';
+    cardUI.app.classList.remove('hidden');
+  }
 }
 
 function flipCard() {
-  document.getElementById('card').classList.toggle('flipped');
+  if (cardUI.card) {
+    cardUI.card.classList.toggle('flipped');
+  }
 }
 
 function nextCard() {
-  if (currentIndex < cards.length - 1) {
-    currentIndex++;
-    renderCard();
-  }
+  setCurrentIndex(currentIndex + 1);
 }
 
 function prevCard() {
-  if (currentIndex > 0) {
-    currentIndex--;
-    renderCard();
-  }
+  setCurrentIndex(currentIndex - 1);
 }

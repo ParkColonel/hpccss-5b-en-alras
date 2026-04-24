@@ -5,7 +5,6 @@
   margin: 0 auto;
   cursor: pointer;
   position: relative;
-  perspective: 1700px;
 }
 
 .card-inner {
@@ -17,24 +16,7 @@
   border: 3px solid var(--border);
   box-shadow: var(--shadow);
   background: #fff;
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-  transition: transform calc(var(--dur-slow) + 480ms) var(--ease-snap), box-shadow var(--dur-fast) var(--ease-linear);
-}
-
-.card-inner::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    120deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.55) 45%,
-    transparent 70%
-  );
-  transform: translateX(-140%);
-  opacity: 0.8;
+  transition: box-shadow var(--dur-fast) var(--ease-linear);
 }
 
 .card-front,
@@ -47,28 +29,32 @@
   gap: 16px;
   padding: 28px;
   color: var(--text);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  will-change: transform;
-  transform: rotateY(0deg);
+  transition: opacity var(--dur-med) var(--ease-snap), transform var(--dur-med) var(--ease-snap);
 }
 
 .card-front {
   background: var(--primary);
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .card-back {
   background: #fff;
-  transform: rotateY(180deg);
-  z-index: 2;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
 }
 
-.flashcard.flipped .card-inner {
-  transform: rotateY(180deg);
+.flashcard.flipped .card-front {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
 }
 
-.flashcard.flipped .card-inner::after {
-  animation: cardSheen calc(var(--dur-slow) + 640ms) var(--ease-linear);
+.flashcard.flipped .card-back {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .card-front h2,
@@ -100,15 +86,6 @@
 .sentence {
   border-left: 4px solid #111;
   padding-left: 14px;
-}
-
-@keyframes cardSheen {
-  from {
-    transform: translateX(-185%);
-  }
-  to {
-    transform: translateX(185%);
-  }
 }
 
 @media (hover: hover) and (pointer: fine) {
